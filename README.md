@@ -16,13 +16,13 @@
 
 ## Environment Required
 
-python=3.10.9    
-torch=2.5.1    
-tqdm=4.64.1  
-numpy=1.23.5  
-cuda=12.2  
-torchvision=0.20.1  
-spikingjelly=0.0.0.0.14
+python==3.10.9    
+torch==2.5.1    
+tqdm==4.64.1  
+numpy==1.23.5  
+cuda==12.2  
+torchvision==0.20.1  
+spikingjelly==0.0.0.0.14
 
 ## Run
 ```
@@ -30,8 +30,7 @@ python main.py --config jsons/safa.json
 ```
 
 ## Contact
-If you have any questions about our work or this repository, please contact us by email.
-[huijingzhang@zju.edu.cn](mailto:huijingzhang@zju.edu.cn)
+If you have any questions about our work or this repository, please contact us by email [huijingzhang@zju.edu.cn](mailto:huijingzhang@zju.edu.cn).
 
 ## Acknowledge
 
