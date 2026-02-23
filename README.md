@@ -1,11 +1,11 @@
-#SAFA-SNN
+# SAFA-SNN
 
 ## This is the official code repository for the project: SAFA-SNN: Sparsity-Aware On-Device Few-Shot Class-Incremental Learning with Fast-Adaptive Structure of Spiking Neural Network (ICLR 2026) [[paper](https://openreview.net/pdf?id=9jcB40wjk3)]
 
 ## Overview
 
 <p align="center">
-  <img src="img/framework.png" width="700">
+  <img src="imgs/framework.png" width="700">
 </p>
 
 <p align="center">
