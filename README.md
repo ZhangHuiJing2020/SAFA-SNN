@@ -50,7 +50,7 @@ If you find this repository useful in your research, please cite our paper:
 
 ```bibtex
 @inproceedings{
-  zhang2025safa,
+  zhang2026safa,
   title={SAFA-SNN: Sparsity-Aware On-Device Few-Shot Class-Incremental Learning with Fast-Adaptive Structure of Spiking Neural Network},
   author={Zhang, Huijing and Cao, Muyang and Jiang, Linshan and Du, Xin and Yu, Di and Lv, Changze and Deng, Shuiguang},
   booktitle={The Fourteenth International Conference on Learning Representations},
