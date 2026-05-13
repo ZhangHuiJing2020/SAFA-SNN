@@ -42,8 +42,8 @@ You can download the datasets used in this project from the following links:
 - [CIFAR-100](https://www.cs.toronto.edu/~kriz/cifar.html)
 - [Mini-ImageNet](https://www.kaggle.com/datasets/arjunashok33/miniimagenet)
 #### Neuromorphic Datasets
-- [CIFAR10-DVS](https://www.frontiersin.org/articles/10.3389/fnins.2017.00309/full)
-- [DVS128 Gesture](https://research.ibm.com/interactive/dvsgesture/)
+- [CIFAR10-DVS](https://figshare.com/articles/dataset/CIFAR10-DVS_New/4724671)
+- [DVS128 Gesture](https://ibm.ent.box.com/s/3hiq58ww1pbbjrinh367ykfdf60xsfm8/folder/50167556794)
 - [N-Caltech101](https://www.garrickorchard.com/datasets/n-caltech101)
 
 ### Run
@@ -75,6 +75,8 @@ If you have any questions about our work or this repository, please submit a Git
 We would like to thank the developers of the following open-source projects for their invaluable contributions:
 
 [CEC](https://github.com/icoz69/CEC-CVPR2021)
+
+[SpikingJelly](https://github.com/fangwei123456/spikingjelly)
 
 ## Citation
 
