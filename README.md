@@ -22,6 +22,7 @@ orthogonal subspace projection in the incremental learning.
 
 ## Environment Required
 
+```aiignore
 python==3.10.9    
 torch==2.5.1    
 tqdm==4.64.1  
@@ -29,14 +30,45 @@ numpy==1.23.5
 cuda==12.2  
 torchvision==0.20.1  
 spikingjelly==0.0.0.0.14
+```
 
-## Run
+
+## Getting Started
+
+### Datasets
+
+You can download the datasets used in this project from the following links:
+#### Static Datasets
+- [CIFAR-100](https://www.cs.toronto.edu/~kriz/cifar.html)
+- [Mini-ImageNet](https://www.kaggle.com/datasets/arjunashok33/miniimagenet)
+#### Neuromorphic Datasets
+- [CIFAR10-DVS](https://www.frontiersin.org/articles/10.3389/fnins.2017.00309/full)
+- [DVS128 Gesture](https://research.ibm.com/interactive/dvsgesture/)
+- [N-Caltech101](https://www.garrickorchard.com/datasets/n-caltech101)
+
+### Run
 ```
 python main.py --config jsons/safa.json
 ```
 
+### Results
+
+- The results on static datasets:
+
+<p align="center">
+  <img src="imgs/cifar100_mini_svgg9.png" alt="cifar100_mini_svgg9">
+</p>
+
+- The results on neuromorphic datasets:
+
+<p align="center">
+  <img src="imgs/neuromorphic_datasets.png" alt="neuromorphic_datasets">
+</p>
+
+
+
 ## Contact
-If you have any questions about our work or this repository, please contact us by email [huijingzhang@zju.edu.cn](mailto:huijingzhang@zju.edu.cn).
+If you have any questions about our work or this repository, please submit a GitHub issue. For further discussions, feel free to contact us by email [huijingzhang@zju.edu.cn](mailto:huijingzhang@zju.edu.cn).
 
 ## Acknowledge
 
