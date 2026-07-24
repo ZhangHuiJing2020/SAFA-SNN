@@ -80,8 +80,7 @@ class NET(nn.Module):
 
     def encode(self, x, session=0):
         x = self.encoder(x)
-        if self.args.network not in ['svgg9', 'svgg11', 'sresnet19', 'spikingformer', 'sresnet20', 'sresnet34',
-                                     'sew_resnet18']:
+        if self.args.network in ['sresnet18']:
             x = F.adaptive_avg_pool2d(x, 1)
             x = x.squeeze(-1).squeeze(-1)
         return x
