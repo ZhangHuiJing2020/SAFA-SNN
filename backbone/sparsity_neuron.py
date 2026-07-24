@@ -152,8 +152,8 @@ class LIFSpike(nn.Module):
 
         B, T, C, H, W = x.size()
 
-        if T != args.time_step and args.dataset not in ['dvs128gesture']:
-            T, B, C, H, W = x.size()
+        # if T != args.time_step and args.dataset not in ['dvs128gesture']:
+        #     T, B, C, H, W = x.size()
 
         mem = torch.zeros_like(x[:, 0])
         spikes = []
