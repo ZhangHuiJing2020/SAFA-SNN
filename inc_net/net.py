@@ -41,13 +41,30 @@ class NET(nn.Module):
             from backbone.spikingformer import Spikingformer
             self.encoder = Spikingformer(H=H, W=W, C=C)
             self.num_features = 128
+        elif self.args.network == 'qkformer':
+            from timm.models import create_model, safe_model_name, resume_checkpoint, load_checkpoint, \
+                convert_splitbn_model, model_parameters
+            from backbone.qkformer import QKFormer
+            self.encoder =  create_model(
+                "QKFormer",
+                pretrained=False,
+                drop_rate=0.,
+                drop_path_rate=0.2,
+                drop_block_rate=None,
+                img_size_h=H, img_size_w=W,
+                patch_size=4, embed_dims=384, num_heads=0, mlp_ratios=1,
+                in_channels=3, num_classes=100, qkv_bias=False,
+                depths=2, sr_ratios=1,
+                T=args.time_step
+                )
+            self.num_features = 384
         elif args.network == 'sresnet19':
             from backbone.spiking_resnet import resnet19
             self.encoder = resnet19(num_classes=100, time_step=args.time_step)
             self.num_features = 256
         elif args.network == 'sresnet18':
             from backbone.spiking_resnet import spiking_resnet18
-            self.encoder = spiking_resnet18(args)
+            self.encoder = spiking_resnet18(args,time_step=tool.args.time_step)
             self.num_features = 512
         elif args.network == 'sresnet20':
             from backbone.spiking_resnet import spiking_resnet20
@@ -62,7 +79,12 @@ class NET(nn.Module):
         self.fc = nn.Linear(self.num_features, args.num_classes, bias=False)
 
     def encode(self, x, session=0):
-        return self.encoder(x, args=self.args)
+        x = self.encoder(x)
+        if self.args.network not in ['svgg9', 'svgg11', 'sresnet19', 'spikingformer', 'sresnet20', 'sresnet34',
+                                     'sew_resnet18']:
+            x = F.adaptive_avg_pool2d(x, 1)
+            x = x.squeeze(-1).squeeze(-1)
+        return x
 
     def forward_metric(self, x, session=0):
         x = self.encode(x, session=session)
