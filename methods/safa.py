@@ -182,8 +182,12 @@ class SAFA(nn.Module):
             else:
                 criterion = nn.CrossEntropyLoss().to(args.device)
 
-            loss = TET_loss(logits, train_label, criterion, args.means, args.lamb)
-            logits = logits.mean(1)
+            if args.network in ['spikingformer']:
+                loss = TET_loss_former(logits, train_label, criterion, args.means, args.lamb)
+                logits = logits.mean(0)
+            else:
+                loss = TET_loss(logits, train_label, criterion, args.means, args.lamb)
+                logits = logits.mean(1)
 
             acc = count_acc(logits, train_label)
             total_loss = loss
@@ -218,8 +222,10 @@ class SAFA(nn.Module):
                 else:
                     model.mode = 'encoder'
                 embedding = model(data)
-
-                embedding = embedding.mean(1)
+                if args.network in ['spikingformer']:
+                    embedding = embedding.mean(0)
+                else:
+                    embedding = embedding.mean(1)
                 embedding_list.append(embedding.cpu())
                 label_list.append(label.cpu())
         embedding_list = torch.cat(embedding_list, dim=0)
@@ -251,8 +257,10 @@ class SAFA(nn.Module):
                 else:
                     data, test_label = [_.to(args.device) for _ in batch]
                 logits = model(data)
-
-                logits = logits.mean(1)
+                if args.network in ['spikingformer']:
+                    logits = logits.mean(0)
+                else:
+                    logits = logits.mean(1)
                 logits = logits[:, :test_class]
                 loss = F.cross_entropy(logits, test_label)
                 acc = count_acc(logits, test_label)
@@ -298,3 +306,18 @@ def TET_loss(outputs, labels, criterion, means, lamb):
     else:
         Loss_mmd = 0
     return (1 - lamb) * Loss_es + lamb * Loss_mmd
+
+def TET_loss_former(outputs, labels, criterion, means, lamb):
+    T = outputs.size(0)
+    Loss_es = 0
+
+    for t in range(T):
+        Loss_es += criterion(outputs[t], labels)
+    Loss_es = Loss_es / T # L_TET
+    if lamb != 0:
+        MMDLoss = torch.nn.MSELoss()
+        y = torch.zeros_like(outputs).fill_(means)
+        Loss_mmd = MMDLoss(outputs, y) # L_mse
+    else:
+        Loss_mmd = 0
+    return (1 - lamb) * Loss_es + lamb * Loss_mmd # L_Total
