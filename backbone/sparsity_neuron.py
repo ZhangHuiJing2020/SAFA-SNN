@@ -139,7 +139,8 @@ class LIFSpike(nn.Module):
         self.avg_nonadaptive_sessions = []
 
     def forward(self, x):
-
+        if tool.args.network in ['spikingformer']:
+            return self.forward_former(x)
         session = tool.session
         args = tool.args
         self.total_sessions = args.sessions
@@ -148,7 +149,6 @@ class LIFSpike(nn.Module):
         while len(self.avg_adaptive_sessions) <= args.sessions:
             self.avg_adaptive_sessions.append([])
             self.avg_nonadaptive_sessions.append([])
-
 
         B, T, C, H, W = x.size()
 
@@ -197,39 +197,102 @@ class LIFSpike(nn.Module):
 
         out = torch.stack(spikes, dim=1)
 
-
         with torch.no_grad():
-
             current_rate = out.float().mean(dim=(0, 1, 3, 4))  # [C]
+
+            self.rate_history.append(current_rate.cpu().numpy())
+            self.thresh_history.append(self.thresh.detach().view(-1).cpu().numpy())
 
             if session == 0:
                 self.base_rate = current_rate.detach().clone()
-
             elif session > 0 and self.base_rate is not None:
-
-                decay_factor = math.exp(-session / args.tau_decay)
-
-                aligned_thresh = self.thresh.data.view(-1)
-
-                # non-adaptive
-                aligned_thresh[~self.adaptive_mask] += (
-                    decay_factor * args.beta *
-                    (current_rate[~self.adaptive_mask] -
-                     self.base_rate[~self.adaptive_mask])
-                )
-
-                # adaptive
-                aligned_thresh[self.adaptive_mask] += (
-                    decay_factor * args.theta *
-                    (current_rate[self.adaptive_mask] -
-                     self.base_rate[self.adaptive_mask])
-                )
-
+                diff = current_rate - self.base_rate
+                aligned_thresh = self.thresh.view(-1)
+                aligned_thresh[~self.adaptive_mask] -= 0.1 * diff[~self.adaptive_mask]
+                aligned_thresh[self.adaptive_mask] -= 0.01 * diff[self.adaptive_mask]
                 self.thresh.data = aligned_thresh.view_as(self.thresh)
 
         return out
 
+    def forward_former(self, x):
+        session = tool.session
+        args = tool.args
+        self.total_sessions = args.sessions
 
+        while len(self.avg_adaptive_sessions) <= args.sessions:
+            self.avg_adaptive_sessions.append([])
+            self.avg_nonadaptive_sessions.append([])
+
+        if x.dim() == 5:
+            T, B, C, H, W = x.size()
+        elif x.dim() == 4:
+            T, B, C, N = x.size()
+        # T, B, C, N = x.size()
+
+        mem = torch.zeros_like(x[0])
+        spikes = []
+
+        if self.thresh is None:
+            if x.dim() == 5:
+                self.thresh = nn.Parameter(
+                    torch.full((1, C, 1, 1), self.init_thresh, device=x.device)
+                )
+            elif x.dim() == 4:
+                self.thresh = nn.Parameter(
+                    torch.full((1, C, 1), self.init_thresh, device=x.device)
+                )
+
+            num_adaptive = int(C * self.adaptive_ratio)
+            mask = torch.zeros(C, dtype=torch.bool)
+            perm = torch.randperm(C)
+            mask[perm[:num_adaptive]] = True
+            self.adaptive_mask = mask.to(x.device)
+
+        for t in range(T):
+
+            mem = mem * self.tau + x[t]
+
+            if args.sg == 'zoo':
+                spike = ZO.apply(mem - self.thresh, self.delta)
+            elif args.sg == 'zif':
+                spike = ZIF.apply(mem - self.thresh, self.delta)
+            elif args.sg == 'atan':
+                spike = surrogate.ATan()(mem - self.thresh)
+            elif args.sg == 'sigmoid':
+                spike = surrogate.Sigmoid()(mem - self.thresh)
+            elif args.sg == 'piecewise_exp':
+                spike = surrogate.PiecewiseExp()(mem - self.thresh)
+            elif args.sg == 'piecewise_leaky_relu':
+                spike = surrogate.PiecewiseLeakyReLU()(mem - self.thresh)
+            elif args.sg == 'qp_seudo_spike':
+                spike = surrogate.QPseudoSpike()(mem - self.thresh)
+            else:
+                raise ValueError(f"Unknown surrogate function: {args.sg}")
+
+            mem = mem * (1 - spike)
+            spikes.append(spike)
+
+        out = torch.stack(spikes, dim=0)
+
+        with torch.no_grad():
+            if x.dim() == 4:
+                current_rate = out.float().mean(dim=(0, 1, 3))  # [C]
+            elif x.dim() == 5:
+                current_rate = out.float().mean(dim=(0, 1, 3, 4))  # [C]
+
+            self.rate_history.append(current_rate.cpu().numpy())
+            self.thresh_history.append(self.thresh.detach().view(-1).cpu().numpy())
+
+            if session == 0:
+                self.base_rate = current_rate.detach().clone()
+            elif session > 0 and self.base_rate is not None:
+                diff = current_rate - self.base_rate
+                aligned_thresh = self.thresh.view(-1)
+                aligned_thresh[~self.adaptive_mask] -= 0.1 * diff[~self.adaptive_mask]
+                aligned_thresh[self.adaptive_mask] -= 0.01 * diff[self.adaptive_mask]
+                self.thresh.data = aligned_thresh.view_as(self.thresh)
+
+        return out
 
     def plot_avg_spike_rate_per_time(self, out, args):
 
